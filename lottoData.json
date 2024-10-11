@@ -1,0 +1,10 @@
+{
+    "lotto": {
+        "must-be-won": "false",
+        "next-draw-date": "12-10-2024"
+    },
+    "euromillions": {
+        "next-draw-jackpot-short": "24",
+        "next-draw-date": "11-10-2024"
+    }
+}

@@ -1,0 +1,32 @@
+<html>
+    <head>
+    </head>
+    <body>
+        <h1>Thing</h1>
+        <div id="results"></div>
+        <script>
+            const URLs = ['./lottoData.json'];
+            let promises = URLs.map(url => {
+                return fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    const resultsDiv = document.getElementById('results');
+                    const unorderedList = document.createElement("UL");
+                    Object.keys(json).forEach(key => {
+                        const listItem = document.createElement("LI");
+                        listItem.innerText = key.toUpperCase();
+                        unorderedList.appendChild(listItem);
+                        const unorderedListInner = document.createElement("UL");
+                        Object.keys(json[key]).forEach((k, i) => {
+                            const listItemInner = document.createElement("LI");
+                            listItemInner.innerText = `${k}: ${json[key][k]}`;
+                            unorderedListInner.appendChild(listItemInner);
+                        });
+                        unorderedList.appendChild(unorderedListInner);
+                    });
+                    resultsDiv.appendChild(unorderedList);
+                })
+            });
+        </script>
+    </body>
+</html>
