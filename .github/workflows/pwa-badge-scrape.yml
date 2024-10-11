@@ -2,7 +2,7 @@ name: Automatic push of file
 on:
   push:
     branches:
-      - latest
+      - main
 
 permissions:
   contents: write
