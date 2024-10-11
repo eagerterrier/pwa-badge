@@ -1,8 +1,7 @@
 name: Automatic push of file
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron:  '0 4 * * 1,2,4,5'
 
 permissions:
   contents: write
@@ -52,9 +51,3 @@ jobs:
              git push -f origin main
           fi
         shell: bash
-
-      - name: Push changes
-        if: steps.commit.outputs.push == 'true'
-        uses: ad-m/github-push-action@master
-        with:
-           github_token: ${{ secrets.GITHUB_TOKEN }}
