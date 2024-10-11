@@ -1,0 +1,16 @@
+{
+  "name": "Lottery Prize Fund Checker",
+  "short_name": "Shall I play?",
+  "Scope": "/",
+  "background_color": "#b80000",
+  "display": "standalone",
+  "theme_color": "#b80000",
+  "icons": [
+    {
+      "src": "./icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "splash_pages": null
+}

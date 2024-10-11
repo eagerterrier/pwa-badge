@@ -1,33 +1,133 @@
 <html>
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+        <link rel="icon" href="/favicon.ico">
     </head>
     <body>
         <h1>Thing</h1>
         <div id="results"></div>
         <script>
-            const URLs = ['./lottoData.json'];
-            const cre = (el) => document.createElement(el);
-            let promises = URLs.map(url => {
-                return fetch(url)
-                .then(response => response.json())
-                .then(json => {
-                    const resultsDiv = document.getElementById('results');
-                    const unorderedList = cre("UL");
-                    Object.keys(json).forEach(key => {
-                        const listItem = cre("LI");
-                        listItem.innerText = key.toUpperCase();
-                        unorderedList.appendChild(listItem);
-                        const unorderedListInner = cre("UL");
-                        Object.keys(json[key]).forEach((k, i) => {
-                            const listItemInner = cre("LI");
-                            listItemInner.innerText = `${k}: ${json[key][k]}`;
-                            unorderedListInner.appendChild(listItemInner);
-                        });
-                        unorderedList.appendChild(unorderedListInner);
-                    });
-                    resultsDiv.appendChild(unorderedList);
-                })
-            });
+            const intervalHours = 0.01;
+            const intervalLength = intervalHours * 60 * 1000;
+            let runs = 0;
+            let notifications = 0;
+            let lottoData = {};
+            const myInterval = window.setInterval(() => {
+                updateData();
+            }, intervalLength);
+            // Feature detection.
+            const supportsAppBadge = 'setAppBadge' in navigator;
+
+            let setAppBadge;
+
+            // Set the badge on the favicon.
+            const setAppBadgeFavicon = (value) => {
+              //favicon.badge = value;
+              console.log('value', value);
+            };
+
+            // Set the native operating system badge.
+            const setAppBadgeNative = (value) => {
+              navigator.setAppBadge(value);
+            }
+
+            // If the app is installed and the Badging API is supported,
+            // set the badge on the native operating system. Else, fall
+            // back to the favicon.
+            if (
+              matchMedia('(display-mode: standalone)').matches &&
+              supportsAppBadge
+            ) {
+              setAppBadge = setAppBadgeNative;
+            } else {
+              setAppBadge = setAppBadgeFavicon;
+            }
+
+            // If installation is supported…
+            if ('BeforeInstallPromptEvent' in window) {
+              let installEvent = null;
+              const onInstall = () => {
+                // After installation, "upgrade" to the native operating system badge.
+                installButton.disabled = true;
+                installEvent = null;
+                if (supportsAppBadge) {
+                  favicon.badge = false;
+                  setAppBadge = setAppBadgeNative;
+                }
+              };
+
+              // …listen for the `beforeinstallprompt` event.
+              window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                installEvent = event;
+                installButton.disabled = false;
+              });
+
+              // Deal with installation.
+              installButton.addEventListener('click', async () => {
+                if (!installEvent) {
+                  return;
+                }
+                installEvent.prompt();
+                const result = await installEvent.userChoice;
+                if (result.outcome === 'accepted') {
+                  onInstall();
+                }
+              });
+
+              // Listen for the `appinstalled` in case the user installs the app manually.
+              window.addEventListener('appinstalled', (event) => {
+                onInstall();
+              });
+            }
+            
+            const updateData = () => {
+                const URLs = ['./lottoData.json'];
+                const cre = (el) => document.createElement(el);
+                let promises = URLs.map(url => {
+                    return fetch(url)
+                    .then(response => response.json())
+                    .then(json => {
+                        if (JSON.stringify(lottoData) !== JSON.stringify(json)) {
+                            lottoData = json;
+                            const resultsDiv = document.getElementById('results');
+                            const headline = cre("H2");
+                            const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                              dateStyle: 'short',
+                              timeStyle: 'long',
+                            }).format(new Date());
+                            headline.innerText = formattedDate;
+                            resultsDiv.appendChild(headline);
+                            
+                            const unorderedList = cre("UL");
+                            Object.keys(json).forEach(key => {
+                                const listItem = cre("LI");
+                                listItem.innerText = key.toUpperCase();
+                                unorderedList.appendChild(listItem);
+                                const unorderedListInner = cre("UL");
+                                Object.keys(json[key]).forEach((k, i) => {
+                                    const listItemInner = cre("LI");
+                                    listItemInner.innerText = `${k}: ${json[key][k]}`;
+                                    unorderedListInner.appendChild(listItemInner);
+                                });
+                                unorderedList.appendChild(unorderedListInner);
+                            });
+                            resultsDiv.appendChild(unorderedList);
+                            if (runs) {
+                                notifications++;
+                                console.log('data has changed!!');
+                                setAppBadge(notifications);
+                            }
+                        }
+                        runs++;
+                    })
+                });
+            }
+            updateData();
         </script>
     </body>
 </html>
