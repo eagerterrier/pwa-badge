@@ -11,6 +11,7 @@
         <h1>Thing</h1>
         <div id="results"></div>
         <script>
+            const euroMillionsThreshold = 99.9;
             const intervalHours = 0.01;
             const intervalLength = intervalHours * 60 * 1000;
             let runs = 0;
@@ -62,6 +63,9 @@
 
               // …listen for the `beforeinstallprompt` event.
               window.addEventListener('beforeinstallprompt', (event) => {
+                Notification.requestPermission().then((result) => {
+                  console.log(result);
+                });
                 event.preventDefault();
                 installEvent = event;
                 installButton.disabled = false;
@@ -112,6 +116,9 @@
                                 Object.keys(json[key]).forEach((k, i) => {
                                     const listItemInner = cre("LI");
                                     listItemInner.innerText = `${k}: ${json[key][k]}`;
+                                    if (((key === 'euromillions' && euroMillionsThreshold < json[key][k]) || (key === 'lotto' && json[key][k] === 'true')) && i === 0) {
+                                        listItemInner.style.color = 'red';
+                                    }
                                     unorderedListInner.appendChild(listItemInner);
                                 });
                                 unorderedList.appendChild(unorderedListInner);

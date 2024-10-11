@@ -2,6 +2,7 @@
   "name": "Lottery Prize Fund Checker",
   "short_name": "Shall I play?",
   "Scope": "/",
+  "start_url": "/",
   "background_color": "#b80000",
   "display": "standalone",
   "theme_color": "#b80000",
