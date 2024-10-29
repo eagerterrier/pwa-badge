@@ -1,10 +1,4 @@
 {
-    "lotto": {
-        "must-be-won": "false",
-        "next-draw-date": "30-10-2024"
-    },
-    "euromillions": {
-        "next-draw-jackpot-short": "71",
-        "next-draw-date": "29-10-2024"
-    }
+    "lotto": {},
+    "euromillions": {}
 }
