@@ -3,9 +3,9 @@
   "short_name": "Shall I play?",
   "Scope": "/",
   "start_url": "/",
-  "background_color": "#b80000",
+  "background_color": "#F7F5F1",
   "display": "standalone",
-  "theme_color": "#b80000",
+  "theme_color": "#F7F5F1",
   "icons": [
     {
       "src": "./icons/icon-512x512.png",

@@ -2,6 +2,16 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="thing" />
+        <meta name="application-name" content="thing" />
+        <meta property="og:locale" content="en-GB" />
+        <meta property="og:site_name" content="thing" />
+        <meta property="og:title" content="thing" />
+        <meta property="og:url" content="" />
+        <meta property="og:image" content="" />
+        <meta property="og:image:alt" content="thing" />
+        <meta name="theme-color" content="#F7F5F1" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -10,10 +20,37 @@
     <body>
         <h1>Thing</h1>
         <div id="results"></div>
+        <button id="install" disabled type="button">Install</button>
         <script>
+            navigator.serviceWorker.register("sw.js");
+
+            const installButton = document.querySelector('button')
+            async function registerPeriodicSync() {
+              const swRegistration = await navigator.serviceWorker.ready;
+              try {
+                  swRegistration.periodicSync.register("get-latest-lottery-details", {
+                    // try to update every 15 hours
+                    minInterval: 15 * 60 * 60 * 1000,
+                  });
+              } catch (e) {
+                console.error(e);
+              }
+            }
+            registerPeriodicSync();
+            const broadcast = new BroadcastChannel('count-channel');
+
+            // Listen to the response
+            broadcast.onmessage = (event) => {
+              console.log(event.data.payload);
+            };
+
+            // Send first request
+            broadcast.postMessage({
+              type: 'INCREASE_COUNT',
+            });
             const euroMillionsThreshold = 99.9;
             const intervalHours = 0.01;
-            const intervalLength = intervalHours * 60 * 1000;
+            const intervalLength = intervalHours * 60 * 60 * 1000;
             let runs = 0;
             let notifications = 0;
             let lottoData = {};
