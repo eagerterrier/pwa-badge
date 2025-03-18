@@ -1,10 +1,4 @@
 {
-    "lotto": {
-        "must-be-won": "false",
-        "next-draw-date": "19-03-2025"
-    },
-    "euromillions": {
-        "next-draw-jackpot-short": "149",
-        "next-draw-date": "18-03-2025"
-    }
+    "lotto": {},
+    "euromillions": {}
 }
