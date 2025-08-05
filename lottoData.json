@@ -1,4 +1,10 @@
 {
-    "lotto": {},
-    "euromillions": {}
+    "lotto": {
+        "must-be-won": "false",
+        "next-draw-date": "06-08-2025"
+    },
+    "euromillions": {
+        "next-draw-jackpot-short": "157",
+        "next-draw-date": "05-08-2025"
+    }
 }
