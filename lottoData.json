@@ -1,10 +1,10 @@
 {
     "lotto": {
         "must-be-won": "false",
-        "next-draw-date": "17-12-2025"
+        "next-draw-date": "20-12-2025"
     },
     "euromillions": {
-        "next-draw-jackpot-short": "14",
-        "next-draw-date": "16-12-2025"
+        "next-draw-jackpot-short": "26",
+        "next-draw-date": "19-12-2025"
     }
 }
