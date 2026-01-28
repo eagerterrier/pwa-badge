@@ -8,8 +8,55 @@ const metaNames = {
                     'euromillions': ['euromillions-next-draw-jackpot-short', 'euromillions-next-draw-date']
 };
 const metaNamesCallbacks = [isTrue => isTrue, figure => figure.replace('£', '').replace('M', '')];
-const URLnames = ['lotto', 'euromillions'];
+const URLnames = ['lotto'];
 let toSave = {};
+
+const allNodes = (obj, key, array) => {
+  array = array || [];
+  if ('object' === typeof obj) {
+    for (let k in obj) {
+      if (k === key) {
+        array.push(obj[k]);
+      } else {
+        allNodes(obj[k], key, array);
+      }
+    }
+  }
+  return array;
+}
+
+const getKeyFromName = (name) => {
+    if (name.toLowerCase().indexOf('euromil') !== -1) {
+        return 'euromillions';
+    }
+    return 'lotto';
+};
+
+const getCorrectDateFormat = (isoDate) => {
+    const date = new Date(isoDate);
+
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getUTCFullYear();
+
+    return `${day}-${month}-${year}`;
+};
+
+const gamesWeCareAbout = ['Lotto-predefined', 'Euromillions-predefined'];
+const fieldsWeCareAbout = ['jackpot', 'jackpotMustBeWon']
+const resultsWeCareAbout = {};
+
+const filterForData = (data) => {
+    if (gamesWeCareAbout.includes(data['@name'])) {
+        const key = getKeyFromName(data['@name']);
+        const value = {
+            'next-draw-jackpot-short': ((data.jackpot / 100) / 1000000).toFixed(0),
+            'must-be-won': false, // for now
+            'next-draw-date': getCorrectDateFormat(data.drawDate)
+        };
+        if (!resultsWeCareAbout[key]) resultsWeCareAbout[key] = value;
+    }
+};
 
 let promises = URLs.map(url => {
     return fetch(url, 
@@ -26,18 +73,22 @@ let promises = URLs.map(url => {
     .then(html => {
         const dom = new JSDOM(html);
         if (dom && dom.window.document) {
-            Object.keys(metaNames).forEach((lottoType, index) => {
-                toSave[lottoType] = {};
-                metaNames[lottoType].forEach((metaToSearch, i) => {
-                    const jsonld = dom.window.document.querySelector(`meta[name="${metaToSearch}"]`);
-                    if (jsonld) {
-                        const metaValue = i === 0 ? metaNamesCallbacks[index](jsonld.content) : jsonld.content;
-                        toSave[lottoType][metaToSearch.replace(`${lottoType}-`, '')] = metaValue;
+            const nextJsData = window.__NEXT_DATA__;
+            const results = allNodes(nextJsData, 'assignedGame');
+            results.forEach((result, i) => {
+                if ('object' === typeof result) {
+                    if (result.hasOwnProperty('@name')) {
+                       filterForData(result);
                     }
-                });
+                    else {
+                        result.forEach(secondaryResult => {
+                           filterForData(secondaryResult);
+                        });
+                    }
+                }
             });
         }
-        return toSave;
+        return resultsWeCareAbout;
     })
 });
 
