@@ -64,7 +64,7 @@ let promises = URLs.map(url => {
             mode: 'cors',
             headers: {
                 'Host': 'www.national-lottery.co.uk',
-                'Referer': 'https://www.national-lottery.co.uk/games/lotto'
+                'Referer': 'https://www.national-lottery.co.uk/'
             }
         }
     )
@@ -81,7 +81,7 @@ let promises = URLs.map(url => {
             console.log('got window and document');
             const nextJsData = document.querySelector("#__NEXT_DATA__");
             const data = JSON.parse(nextJsData.innerHTML)
-            console.log(data);
+            console.log(JSON.stringify(data, null, 4));
             const results = allNodes(data, 'assignedGame');
             results.forEach((result, i) => {
                 if ('object' === typeof result) {
