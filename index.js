@@ -79,9 +79,10 @@ let promises = URLs.map(url => {
         } = parseHTML(html);
         if (window && document) {
             console.log('got window and document');
-            const nextJsData = window.__NEXT_DATA__;
-            console.log(nextJsData);
-            const results = allNodes(nextJsData, 'assignedGame');
+            const nextJsData = document.querySelector("#__NEXT_DATA__");
+            const data = JSON.parse(scriptNode.innerHTML)
+            console.log(data);
+            const results = allNodes(data, 'assignedGame');
             results.forEach((result, i) => {
                 if ('object' === typeof result) {
                     if (result.hasOwnProperty('@name')) {
