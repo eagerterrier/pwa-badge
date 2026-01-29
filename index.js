@@ -77,8 +77,10 @@ let promises = URLs.map(url => {
           Event, CustomEvent
           // other exports ..
         } = parseHTML(html);
-        if (window && window.document) {
+        if (window && document) {
+            console.log('got window and document');
             const nextJsData = window.__NEXT_DATA__;
+            console.log(nextJsData);
             const results = allNodes(nextJsData, 'assignedGame');
             results.forEach((result, i) => {
                 if ('object' === typeof result) {
@@ -92,6 +94,9 @@ let promises = URLs.map(url => {
                     }
                 }
             });
+        }
+        else {
+            console.log('no window and doc');
         }
         return resultsWeCareAbout;
     })
