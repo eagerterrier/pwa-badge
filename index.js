@@ -1,7 +1,7 @@
 import fs from 'fs';
 import {DOMParser, parseHTML} from 'linkedom';
 
-const URLs = ['https://www.national-lottery.co.uk/games/lotto'];
+const URLs = ['https://www.national-lottery.co.uk/'];
 const metaNames = {
                     'lotto': ['lotto-must-be-won', 'lotto-next-draw-date'],
                     'euromillions': ['euromillions-next-draw-jackpot-short', 'euromillions-next-draw-date']
