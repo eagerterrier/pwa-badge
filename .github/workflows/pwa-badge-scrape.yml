@@ -1,7 +1,6 @@
 name: Automatic push of file
-on:
-  schedule:
-    - cron:  '30 09 * * 1,2,4,5'
+
+on: workflow_dispatch
 
 permissions:
   contents: write
