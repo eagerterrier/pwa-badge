@@ -73,7 +73,7 @@ let promises = URLs.map(url => {
     .then(html => {
         const dom = new JSDOM(html);
         if (dom && dom.window.document) {
-            const nextJsData = window.__NEXT_DATA__;
+            const nextJsData = dom.window.__NEXT_DATA__;
             const results = allNodes(nextJsData, 'assignedGame');
             results.forEach((result, i) => {
                 if ('object' === typeof result) {
