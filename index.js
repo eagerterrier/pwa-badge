@@ -1,6 +1,5 @@
-const fs = require("fs");
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+import fs from 'fs';
+import {DOMParser, parseHTML} from 'linkedom';
 
 const URLs = ['https://www.national-lottery.co.uk/games/lotto'];
 const metaNames = {
@@ -71,9 +70,15 @@ let promises = URLs.map(url => {
     )
     .then(response => response.text())
     .then(html => {
-        const dom = new JSDOM(html);
-        if (dom && dom.window.document) {
-            const nextJsData = dom.window.__NEXT_DATA__;
+        const {
+          // note, these are *not* globals
+          window, document, customElements,
+          HTMLElement,
+          Event, CustomEvent
+          // other exports ..
+        } = parseHTML(html);
+        if (window && window.document) {
+            const nextJsData = window.__NEXT_DATA__;
             const results = allNodes(nextJsData, 'assignedGame');
             results.forEach((result, i) => {
                 if ('object' === typeof result) {
