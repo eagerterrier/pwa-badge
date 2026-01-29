@@ -80,7 +80,7 @@ let promises = URLs.map(url => {
         if (window && document) {
             console.log('got window and document');
             const nextJsData = document.querySelector("#__NEXT_DATA__");
-            const data = JSON.parse(scriptNode.innerHTML)
+            const data = JSON.parse(nextJsData.innerHTML)
             console.log(data);
             const results = allNodes(data, 'assignedGame');
             results.forEach((result, i) => {
