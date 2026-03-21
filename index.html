@@ -2,176 +2,114 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="thing" />
-        <meta name="application-name" content="thing" />
-        <meta property="og:locale" content="en-GB" />
-        <meta property="og:site_name" content="thing" />
-        <meta property="og:title" content="thing" />
-        <meta property="og:url" content="" />
-        <meta property="og:image" content="" />
-        <meta property="og:image:alt" content="thing" />
+        <title>Lottery Tracker</title>
         <meta name="theme-color" content="#F7F5F1" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
         <link rel="icon" href="/favicon.ico">
+        <style>
+            body { font-family: sans-serif; padding: 20px; background: #F7F5F1; }
+            .must-be-won { color: red; font-weight: bold; }
+            #results { margin-top: 20px; }
+            ul { list-style: none; padding-left: 10px; }
+            li { margin-bottom: 5px; }
+        </style>
     </head>
     <body>
-        <h1>Thing</h1>
-        <div id="results"></div>
-        <button id="install" disabled type="button">Install</button>
+        <h1>Lottery Thing</h1>
+        <button id="install" disabled type="button">Install App</button>
+        <div id="results">Loading lottery data...</div>
+
         <script>
-            navigator.serviceWorker.register("sw.js");
-
-            const installButton = document.querySelector('button')
-            async function registerPeriodicSync() {
-              const swRegistration = await navigator.serviceWorker.ready;
-              try {
-                  swRegistration.periodicSync.register("get-latest-lottery-details", {
-                    // try to update every 15 hours
-                    minInterval: 15 * 60 * 60 * 1000,
-                  });
-              } catch (e) {
-                console.error(e);
-              }
-            }
-            registerPeriodicSync();
+            const EURO_MILLIONS_THRESHOLD = 99.9;
             const broadcast = new BroadcastChannel('count-channel');
+            const resultsDiv = document.getElementById('results');
+            const installButton = document.getElementById('install');
 
-            // Listen to the response
-            broadcast.onmessage = (event) => {
-              console.log(event.data.payload);
-            };
-
-            // Send first request
-            broadcast.postMessage({
-              type: 'INCREASE_COUNT',
-            });
-            const euroMillionsThreshold = 99.9;
-            const intervalHours = 0.01;
-            const intervalLength = intervalHours * 60 * 60 * 1000;
-            let runs = 0;
-            let notifications = 0;
-            let lottoData = {};
-            const myInterval = window.setInterval(() => {
-                updateData();
-            }, intervalLength);
-            // Feature detection.
-            const supportsAppBadge = 'setAppBadge' in navigator;
-
-            let setAppBadge;
-
-            // Set the badge on the favicon.
-            const setAppBadgeFavicon = (value) => {
-              //favicon.badge = value;
-              console.log('value', value);
-            };
-
-            // Set the native operating system badge.
-            const setAppBadgeNative = (value) => {
-              navigator.setAppBadge(value);
-            }
-
-            // If the app is installed and the Badging API is supported,
-            // set the badge on the native operating system. Else, fall
-            // back to the favicon.
-            if (
-              matchMedia('(display-mode: standalone)').matches &&
-              supportsAppBadge
-            ) {
-              setAppBadge = setAppBadgeNative;
-            } else {
-              setAppBadge = setAppBadgeFavicon;
-            }
-
-            // If installation is supported…
-            if ('BeforeInstallPromptEvent' in window) {
-              let installEvent = null;
-              const onInstall = () => {
-                // After installation, "upgrade" to the native operating system badge.
-                installButton.disabled = true;
-                installEvent = null;
-                if (supportsAppBadge) {
-                  favicon.badge = false;
-                  setAppBadge = setAppBadgeNative;
-                }
-              };
-
-              // …listen for the `beforeinstallprompt` event.
-              window.addEventListener('beforeinstallprompt', (event) => {
-                Notification.requestPermission().then((result) => {
-                  console.log(result);
+            // --- 1. Registration & Service Worker ---
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register("sw.js").then(reg => {
+                    // Register Periodic Sync if available
+                    if (reg.periodicSync) {
+                        reg.periodicSync.register("get-latest-lottery-details", {
+                            minInterval: 15 * 60 * 60 * 1000, // 15 hours
+                        }).catch(console.error);
+                    }
                 });
-                event.preventDefault();
-                installEvent = event;
-                installButton.disabled = false;
-              });
-
-              // Deal with installation.
-              installButton.addEventListener('click', async () => {
-                if (!installEvent) {
-                  return;
-                }
-                installEvent.prompt();
-                const result = await installEvent.userChoice;
-                if (result.outcome === 'accepted') {
-                  onInstall();
-                }
-              });
-
-              // Listen for the `appinstalled` in case the user installs the app manually.
-              window.addEventListener('appinstalled', (event) => {
-                onInstall();
-              });
             }
-            
-            const updateData = () => {
-                const URLs = ['./lottoData.json'];
+
+            // --- 2. Rendering Logic ---
+            const renderResults = (json) => {
+                resultsDiv.innerHTML = ''; 
                 const cre = (el) => document.createElement(el);
-                let promises = URLs.map(url => {
-                    return fetch(url)
-                    .then(response => response.json())
-                    .then(json => {
-                        if (JSON.stringify(lottoData) !== JSON.stringify(json)) {
-                            lottoData = json;
-                            const resultsDiv = document.getElementById('results');
-                            const headline = cre("H2");
-                            const formattedDate = new Intl.DateTimeFormat('en-GB', {
-                              dateStyle: 'short',
-                              timeStyle: 'long',
-                            }).format(new Date());
-                            headline.innerText = formattedDate;
-                            resultsDiv.appendChild(headline);
-                            
-                            const unorderedList = cre("UL");
-                            Object.keys(json).forEach(key => {
-                                const listItem = cre("LI");
-                                listItem.innerText = key.toUpperCase();
-                                unorderedList.appendChild(listItem);
-                                const unorderedListInner = cre("UL");
-                                Object.keys(json[key]).forEach((k, i) => {
-                                    const listItemInner = cre("LI");
-                                    listItemInner.innerText = `${k}: ${json[key][k]}`;
-                                    if (((key === 'euromillions' && euroMillionsThreshold < json[key][k]) || (key === 'lotto' && json[key][k] === 'true')) && i === 0) {
-                                        listItemInner.style.color = 'red';
-                                    }
-                                    unorderedListInner.appendChild(listItemInner);
-                                });
-                                unorderedList.appendChild(unorderedListInner);
-                            });
-                            resultsDiv.appendChild(unorderedList);
-                            if (runs) {
-                                notifications++;
-                                console.log('data has changed!!');
-                                setAppBadge(notifications);
-                            }
+                
+                const headline = cre("H2");
+                headline.innerText = `Last Updated: ${new Intl.DateTimeFormat('en-GB', {
+                    dateStyle: 'short',
+                    timeStyle: 'medium',
+                }).format(new Date())}`;
+                resultsDiv.appendChild(headline);
+                
+                const mainList = cre("UL");
+                Object.keys(json).forEach(gameKey => {
+                    const gameData = json[gameKey];
+                    const gameTitle = cre("LI");
+                    gameTitle.innerHTML = `<strong>${gameKey.toUpperCase()}</strong>`;
+                    mainList.appendChild(gameTitle);
+
+                    const detailsList = cre("UL");
+                    Object.entries(gameData).forEach(([field, value]) => {
+                        const detailItem = cre("LI");
+                        detailItem.innerText = `${field}: ${value}`;
+                        
+                        // Apply red styling if conditions are met
+                        if (gameKey === 'euromillions' && field === 'next-draw-jackpot-short' && parseFloat(value) > EURO_MILLIONS_THRESHOLD) {
+                            detailItem.classList.add('must-be-won');
                         }
-                        runs++;
-                    })
+                        if (gameKey === 'lotto' && field === 'must-be-won' && (value === true || value === 'true')) {
+                            detailItem.classList.add('must-be-won');
+                        }
+                        
+                        detailsList.appendChild(detailItem);
+                    });
+                    mainList.appendChild(detailsList);
+                });
+                resultsDiv.appendChild(mainList);
+            };
+
+            // --- 3. Communication ---
+            broadcast.onmessage = (event) => {
+                if (event.data.type === 'DATA_UPDATED') {
+                    renderResults(event.data.payload);
+                    if (!matchMedia('(display-mode: standalone)').matches) {
+                        console.log('Non-installed badge value:', event.data.count);
+                    }
+                }
+            };
+
+            // Initial manual trigger to get data immediately
+            const updateData = () => {
+                fetch('./lottoData.json')
+                    .then(res => res.json())
+                    .then(data => renderResults(data))
+                    .catch(err => console.error("Initial fetch failed:", err));
+            };
+            updateData();
+
+            // --- 4. Installation & Badging Logic ---
+            if ('BeforeInstallPromptEvent' in window) {
+                let installEvent = null;
+                window.addEventListener('beforeinstallprompt', (event) => {
+                    event.preventDefault();
+                    installEvent = event;
+                    installButton.disabled = false;
+                });
+
+                installButton.addEventListener('click', async () => {
+                    if (!installEvent) return;
+                    installEvent.prompt();
+                    const { outcome } = await installEvent.userChoice;
+                    if (outcome === 'accepted') installButton.disabled = true;
                 });
             }
-            updateData();
         </script>
     </body>
 </html>
