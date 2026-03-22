@@ -1,14 +1,14 @@
 {
-    "lotto": {
-        "next-draw-jackpot-short": "10",
-        "must-be-won": false,
-        "next-draw-date": "21-03-2026",
-        "raw-jackpot-pounds": 10376741.07
-    },
     "euromillions": {
         "next-draw-jackpot-short": "43",
-        "must-be-won": false,
         "next-draw-date": "24-03-2026",
-        "raw-jackpot-pounds": 43000000
+        "raw-jackpot-pounds": 43000000,
+        "phase": "NORMAL"
+    },
+    "lotto": {
+        "next-draw-jackpot-short": "12",
+        "next-draw-date": "25-03-2026",
+        "raw-jackpot-pounds": 12145489.4,
+        "phase": "MUST_BE_WON"
     }
 }
