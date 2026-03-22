@@ -1,56 +1,60 @@
 import fs from 'fs';
 
-const URL = 'https://api-dfe.national-lottery.co.uk/navigation-proxy';
-const gamesToTrack = ['Lotto-predefined', 'Euromillions-predefined'];
+const NAV_URL = 'https://api-dfe.national-lottery.co.uk/navigation-proxy';
+const LOTTO_CMS_URL = 'https://api-dfe.national-lottery.co.uk/cms-proxy/pages/v1/games/lotto?mobileclient=false';
 
 const getCorrectDateFormat = (isoDate) => {
     const date = new Date(isoDate);
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const year = date.getUTCFullYear();
-    return `${day}-${month}-${year}`;
+    return `${String(date.getUTCDate()).padStart(2, '0')}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${date.getUTCFullYear()}`;
 };
 
 async function scrapeLottery() {
     try {
-        console.log('Fetching lottery data...');
-        const response = await fetch(URL, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Origin': 'https://www.national-lottery.co.uk',
-                'Referer': 'https://www.national-lottery.co.uk/'
-            }
-        });
+        // 1. Fetch general data for EuroMillions
+        const navRes = await fetch(NAV_URL);
+        const navData = await navRes.json();
+        
+        // 2. Fetch specific Lotto CMS data for the 'phase'
+        const lottoRes = await fetch(LOTTO_CMS_URL);
+        const lottoData = await lottoRes.json();
 
-        const data = await response.json();
-        const results = data.drawGamesContent?.drawGames?.results || [];
         const toSave = {};
 
-        results.forEach(game => {
-            const name = game['@name'];
-            
-            if (gamesToTrack.includes(name)) {
-                const key = name.toLowerCase().includes('euromil') ? 'euromillions' : 'lotto';
-                
-                // Convert pence to pounds, then to Millions for your short-jackpot format
-                const jackpotPounds = parseInt(game.jackpot) / 100;
-                const jackpotMillions = (jackpotPounds / 1000000).toFixed(0);
+        // Process EuroMillions from Nav
+        const euroResult = navData.drawGamesContent?.drawGames?.results.find(r => r['@name'] === 'Euromillions-predefined');
+        if (euroResult) {
+            toSave['euromillions'] = {
+                'next-draw-jackpot-short': (parseInt(euroResult.jackpot) / 100000000).toFixed(0),
+                'next-draw-date': getCorrectDateFormat(euroResult.drawDate),
+                'raw-jackpot-pounds': parseInt(euroResult.jackpot) / 100,
+                'phase': euroResult.phase || 'NORMAL'
+            };
+        }
 
-                toSave[key] = {
-                    'next-draw-jackpot-short': jackpotMillions,
-                    'must-be-won': false, // Placeholder for now
-                    'next-draw-date': getCorrectDateFormat(game.drawDate),
-                    'raw-jackpot-pounds': jackpotPounds // Useful for your threshold check
-                };
-            }
-        });
+        // Process Lotto from CMS
+        // Using the structure found in your uploaded lottomustbewon.json
+        const lottoDetails = lottoData.headerArea?.["0"]?.dbgJackpotCard?.assignedGame;
+        if (lottoDetails) {
+            toSave['lotto'] = {
+                'next-draw-jackpot-short': (parseInt(lottoDetails.jackpot) / 100000000).toFixed(0),
+                'next-draw-date': getCorrectDateFormat(lottoDetails.drawDate),
+                'raw-jackpot-pounds': parseInt(lottoDetails.jackpot) / 100,
+                'phase': lottoDetails.phase || 'NORMAL'
+            };
+        }
+
+        // 3. GitHub Actions Output for Email Notification
+        const thresholdMet = (toSave.euromillions?.['raw-jackpot-pounds'] >= 100000000) || 
+                           (['MUST_BE_WON', 'GUARANTEED_MILLIONAIRE', 'MUST_BE_WON_GUARANTEED_MILLIONAIRE'].includes(toSave.lotto?.phase));
+
+        if (thresholdMet && process.env.GITHUB_OUTPUT) {
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `NOTIFY=true\n`);
+        }
 
         fs.writeFileSync('./lottoData.json', JSON.stringify(toSave, null, 4));
-        console.log('Successfully saved lottoData.json');
-
+        console.log('Update Complete');
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Scraper Error:', error);
     }
 }
 

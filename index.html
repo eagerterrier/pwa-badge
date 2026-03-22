@@ -48,11 +48,18 @@
                 }).format(new Date())}`;
                 resultsDiv.appendChild(headline);
                 
+                const specialPhases = ['MUST_BE_WON', 'GUARANTEED_MILLIONAIRE', 'MUST_BE_WON_GUARANTEED_MILLIONAIRE'];
+                
                 const mainList = cre("UL");
                 Object.keys(json).forEach(gameKey => {
                     const gameData = json[gameKey];
                     const gameTitle = cre("LI");
                     gameTitle.innerHTML = `<strong>${gameKey.toUpperCase()}</strong>`;
+                    // Highlight game title if in a special phase
+                    if (specialPhases.includes(gameData.phase)) {
+                        gameTitle.style.color = 'red';
+                        gameTitle.innerHTML += ` - ${gameData.phase.replace(/_/g, ' ')}!`;
+                    }
                     mainList.appendChild(gameTitle);
 
                     const detailsList = cre("UL");
