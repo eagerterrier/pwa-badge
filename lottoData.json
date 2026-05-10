@@ -6,9 +6,9 @@
         "phase": "NORMAL"
     },
     "lotto": {
-        "next-draw-jackpot-short": "4",
-        "next-draw-date": "09-05-2026",
-        "raw-jackpot-pounds": 3909050,
-        "phase": "ROLLOVER_1"
+        "next-draw-jackpot-short": "5",
+        "next-draw-date": "13-05-2026",
+        "raw-jackpot-pounds": 5093758.65,
+        "phase": "ROLLOVER_2"
     }
 }
