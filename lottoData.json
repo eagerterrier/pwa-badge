@@ -6,9 +6,9 @@
         "phase": "NORMAL"
     },
     "lotto": {
-        "next-draw-jackpot-short": "2",
-        "next-draw-date": "27-05-2026",
-        "raw-jackpot-pounds": 2000000,
+        "next-draw-jackpot-short": "4",
+        "next-draw-date": "30-05-2026",
+        "raw-jackpot-pounds": 3800000,
         "phase": "INITIAL"
     }
 }
