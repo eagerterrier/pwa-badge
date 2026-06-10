@@ -1,1 +1,14 @@
-{}
+{
+    "euromillions": {
+        "next-draw-jackpot-short": "14",
+        "next-draw-date": "12-06-2026",
+        "raw-jackpot-pounds": 14000000,
+        "phase": "NORMAL"
+    },
+    "lotto": {
+        "next-draw-jackpot-short": "2",
+        "next-draw-date": "NaN-NaN-NaN",
+        "raw-jackpot-pounds": 2000000,
+        "phase": "INITIAL"
+    }
+}
