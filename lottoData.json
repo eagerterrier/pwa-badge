@@ -6,9 +6,9 @@
         "phase": "NORMAL"
     },
     "lotto": {
-        "next-draw-jackpot-short": "8",
+        "next-draw-jackpot-short": "12",
         "next-draw-date": "NaN-NaN-NaN",
-        "raw-jackpot-pounds": 7706666.09,
+        "raw-jackpot-pounds": 12000000,
         "phase": "MUST_BE_WON"
     }
 }
